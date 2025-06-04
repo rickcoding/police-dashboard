@@ -20,6 +20,7 @@ const SpatialAnalysis = () => {
   const [areaTab, setAreaTab] = useState('hotspot');
   const [roadTab, setRoadTab] = useState('accident');
   const [selectedArea, setSelectedArea] = useState(null);
+  const [isRiskModalOpen, setIsRiskModalOpen] = useState(false);
   const mapRef = useRef(null);
 
   const areaData = [
@@ -67,6 +68,397 @@ const SpatialAnalysis = () => {
       case 'low': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  // 高风险区域详情数据
+  const highRiskAreasData = [
+    {
+      id: 1,
+      name: 'XX商圈',
+      type: '商业集中区',
+      riskLevel: '高危',
+      riskScore: 88,
+      location: '市中心商业区',
+      area: '2.5平方公里',
+      population: '约15万人流量/日',
+      caseCount: 32,
+      mainType: '盗窃类',
+      timeRange: '近30天',
+      factors: [
+        { name: '人流密度', score: 92, description: '日均15万人次，远超安全阈值' },
+        { name: '案件频率', score: 85, description: '近30天发生32起，环比增长28%' },
+        { name: '监控覆盖', score: 65, description: '覆盖率75%，存在监控盲区' },
+        { name: '警力配置', score: 72, description: '现有警力配置略显不足' }
+      ],
+      suggestions: [
+        '在主要商圈出入口增设2个临时警务点',
+        '增加便衣警察在高峰时段巡逻',
+        '协调商场保安加强内部巡查',
+        '在监控盲区增设高清摄像头',
+        '建立商户联防机制和快速响应体系'
+      ],
+      recentIncidents: [
+        { time: '2025-05-06 15:30', location: 'XX商场北门', type: '手机被盗', status: '已处理' },
+        { time: '2025-05-05 16:45', location: 'XX商场地下停车场', type: '车内物品被盗', status: '侦办中' },
+        { time: '2025-05-04 14:20', location: 'XX商圈步行街', type: '钱包被盗', status: '已处理' },
+        { time: '2025-05-03 17:10', location: 'XX购物中心', type: '扒窃', status: '已处理' }
+      ],
+      environmentFactors: {
+        businessDensity: 85,
+        populationDensity: 92,
+        trafficFlow: 88,
+        lightingCondition: 70,
+        securityLevel: 65
+      }
+    },
+    {
+      id: 2,
+      name: 'XX路口',
+      type: '交通枢纽区',
+      riskLevel: '高危',
+      riskScore: 82,
+      location: '城市主干道交叉口',
+      area: '0.8平方公里',
+      population: '约8万车流量/日',
+      caseCount: 28,
+      mainType: '交通事故',
+      timeRange: '近30天',
+      factors: [
+        { name: '交通流量', score: 90, description: '日均8万车次，超饱和状态' },
+        { name: '事故频率', score: 85, description: '近30天发生28起事故' },
+        { name: '道路条件', score: 75, description: '路面状况良好，标线清晰' },
+        { name: '信号配时', score: 68, description: '高峰期配时需要优化' }
+      ],
+      suggestions: [
+        '优化信号灯配时，延长高峰期绿灯时间',
+        '在路口增设LED警示标志',
+        '早晚高峰增派交警现场指挥',
+        '设置更多减速带和警示标线',
+        '建立实时交通监控和预警系统'
+      ],
+      recentIncidents: [
+        { time: '2025-05-06 08:15', location: 'XX路口南侧', type: '追尾事故', status: '已处理' },
+        { time: '2025-05-05 17:30', location: 'XX路口东侧', type: '刮擦事故', status: '已处理' },
+        { time: '2025-05-04 07:45', location: 'XX路口北侧', type: '追尾事故', status: '已处理' },
+        { time: '2025-05-03 18:20', location: 'XX路口西侧', type: '轻微碰撞', status: '已处理' }
+      ],
+      environmentFactors: {
+        trafficFlow: 90,
+        roadCondition: 75,
+        signalSystem: 68,
+        visibilityLevel: 80,
+        weatherImpact: 85
+      }
+    },
+    {
+      id: 3,
+      name: 'XX夜市',
+      type: '娱乐休闲区',
+      riskLevel: '中危',
+      riskScore: 75,
+      location: '老城区夜市街道',
+      area: '1.2平方公里',
+      population: '约3万人流量/夜',
+      caseCount: 24,
+      mainType: '治安事件',
+      timeRange: '近30天',
+      factors: [
+        { name: '夜间人流', score: 80, description: '夜间人流密集，管理复杂' },
+        { name: '治安状况', score: 70, description: '偶发治安事件，整体可控' },
+        { name: '环境秩序', score: 75, description: '摊位管理有序，但噪音较大' },
+        { name: '应急响应', score: 72, description: '应急处置能力较好' }
+      ],
+      suggestions: [
+        '增加夜间巡逻警力和频次',
+        '协调夜市管理方加强秩序维护',
+        '在主要通道增设监控探头',
+        '建立商户联防机制',
+        '设置应急处置点和报警设备'
+      ],
+      recentIncidents: [
+        { time: '2025-05-05 22:30', location: 'XX夜市C区', type: '酒后滋事', status: '已处理' },
+        { time: '2025-05-04 23:15', location: 'XX夜市入口', type: '商贩纠纷', status: '已调解' },
+        { time: '2025-05-03 21:45', location: 'XX夜市B区', type: '钱包被盗', status: '侦办中' },
+        { time: '2025-05-02 22:50', location: 'XX夜市停车场', type: '车辆刮擦', status: '已处理' }
+      ],
+      environmentFactors: {
+        crowdDensity: 80,
+        noiseLevel: 85,
+        lightingCondition: 65,
+        managementLevel: 72,
+        securityPatrol: 70
+      }
+    }
+  ];
+
+  // 区域风险详情评分卡组件
+  const AreaRiskDetailModal = ({ isOpen, onClose, areasData }) => {
+    const [currentIndex, setCurrentIndex] = useState(0);
+    
+    // 处理点击遮罩关闭
+    const handleBackdropClick = (e) => {
+      if (e.target === e.currentTarget) {
+        onClose();
+      }
+    };
+    
+    // 处理ESC键关闭 - 必须在条件返回之前
+    React.useEffect(() => {
+      const handleEscKey = (e) => {
+        if (e.key === 'Escape') {
+          onClose();
+        }
+      };
+      
+      if (isOpen) {
+        document.addEventListener('keydown', handleEscKey);
+        // 阻止背景滚动
+        document.body.style.overflow = 'hidden';
+      }
+      
+      return () => {
+        document.removeEventListener('keydown', handleEscKey);
+        document.body.style.overflow = 'unset';
+      };
+    }, [isOpen, onClose]);
+    
+    // 条件返回必须在所有Hooks之后
+    if (!isOpen || !areasData || areasData.length === 0) return null;
+    
+    const currentArea = areasData[currentIndex];
+    
+    const getRiskLevelColor = (level) => {
+      switch (level) {
+        case '高危': return 'text-red-600 bg-red-100';
+        case '中危': return 'text-orange-600 bg-orange-100';
+        case '低危': return 'text-green-600 bg-green-100';
+        default: return 'text-gray-600 bg-gray-100';
+      }
+    };
+    
+    const getScoreColor = (score) => {
+      if (score >= 80) return 'text-red-600';
+      if (score >= 60) return 'text-orange-600';
+      return 'text-green-600';
+    };
+    
+    const getStatusColor = (status) => {
+      switch (status) {
+        case '已处理': return 'text-green-600 bg-green-100';
+        case '侦办中': return 'text-orange-600 bg-orange-100';
+        case '已调解': return 'text-blue-600 bg-blue-100';
+        default: return 'text-gray-600 bg-gray-100';
+      }
+    };
+    
+    return (
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+        style={{ zIndex: 9999 }}
+        onClick={handleBackdropClick}
+      >
+        <div 
+          className="bg-white rounded-lg max-w-xl w-full max-h-[60vh] overflow-y-auto shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* 头部 */}
+          <div className="flex justify-between items-center p-2 border-b bg-white sticky top-0 z-10">
+            <div className="flex items-center space-x-2">
+              <h2 className="text-base font-bold">高风险区域详情</h2>
+              <div className="flex space-x-1">
+                {areasData.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentIndex(index)}
+                    className={`w-2 h-2 rounded-full transition-colors ${
+                      index === currentIndex ? 'bg-blue-500' : 'bg-gray-300 hover:bg-gray-400'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+            <button 
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700 text-lg font-bold w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+            >
+              ×
+            </button>
+          </div>
+          
+          {/* 主要信息卡片 */}
+          <div className="p-2">
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-2 rounded mb-2 border">
+              <div className="flex justify-between items-start mb-2">
+                <div className="flex-1">
+                  <h3 className="text-sm font-bold text-gray-800 mb-1">{currentArea.name}</h3>
+                  <p className="text-xs text-gray-600 mb-1">{currentArea.location} · {currentArea.type}</p>
+                  <div className="grid grid-cols-2 gap-2 text-xs text-gray-500">
+                    <div>📍 {currentArea.area}</div>
+                    <div>👥 {currentArea.population}</div>
+                    <div>⏱️ {currentArea.timeRange}</div>
+                    <div>📊 {currentArea.caseCount} 起</div>
+                  </div>
+                </div>
+                <div className="text-right ml-2">
+                  <div className={`inline-block px-1.5 py-0.5 rounded-full text-xs font-medium ${getRiskLevelColor(currentArea.riskLevel)}`}>
+                    {currentArea.riskLevel}
+                  </div>
+                  <div className="mt-1">
+                    <div className={`text-xl font-bold ${getScoreColor(currentArea.riskScore)}`}>
+                      {currentArea.riskScore}
+                    </div>
+                    <div className="text-xs text-gray-500">风险评分</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* 风险因子分析和处置建议 */}
+            <div className="grid grid-cols-1 gap-2 mb-2">
+              <div className="bg-white border rounded p-2">
+                <h4 className="font-bold text-gray-800 mb-2 flex items-center text-xs">
+                  🔍 风险因子分析
+                </h4>
+                <div className="space-y-2">
+                  {currentArea.factors.map((factor, index) => (
+                    <div key={index} className="border-b pb-1 last:border-b-0">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="font-medium text-gray-700 text-xs">{factor.name}</span>
+                        <span className={`font-bold text-xs ${getScoreColor(factor.score)}`}>
+                          {factor.score}分
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-1">
+                        <div 
+                          className={`h-1 rounded-full ${
+                            factor.score >= 80 ? 'bg-red-500' : 
+                            factor.score >= 60 ? 'bg-orange-500' : 'bg-green-500'
+                          }`}
+                          style={{ width: `${factor.score}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* 处置建议 */}
+              <div className="bg-white border rounded p-2">
+                <h4 className="font-bold text-gray-800 mb-2 flex items-center text-xs">
+                  💡 防控建议
+                </h4>
+                <div className="space-y-1">
+                  {currentArea.suggestions.slice(0, 3).map((suggestion, index) => (
+                    <div key={index} className="flex items-start space-x-1">
+                      <div className="w-4 h-4 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
+                        {index + 1}
+                      </div>
+                      <p className="text-gray-700 text-xs">{suggestion}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            {/* 环境因子和近期案件 - 改为单列布局 */}
+            <div className="space-y-2">
+              {/* 环境因子评估 */}
+              <div className="bg-white border rounded p-2">
+                <h4 className="font-bold text-gray-800 mb-2 flex items-center text-xs">
+                  🌍 环境因子评估
+                </h4>
+                <div className="grid grid-cols-2 gap-1">
+                  {Object.entries(currentArea.environmentFactors).slice(0, 4).map(([key, value], index) => {
+                    const factorNames = {
+                      businessDensity: '商业密度',
+                      populationDensity: '人口密度',
+                      trafficFlow: '交通流量',
+                      lightingCondition: '照明条件',
+                      securityLevel: '安防水平',
+                      roadCondition: '道路状况',
+                      signalSystem: '信号系统',
+                      visibilityLevel: '能见度',
+                      weatherImpact: '天气影响',
+                      crowdDensity: '人群密度',
+                      noiseLevel: '噪音水平',
+                      managementLevel: '管理水平',
+                      securityPatrol: '安保巡逻'
+                    };
+                    return (
+                      <div key={key} className="flex items-center justify-between">
+                        <span className="text-xs text-gray-700">{factorNames[key] || key}</span>
+                        <div className="flex items-center space-x-1">
+                          <div className="w-12 bg-gray-200 rounded-full h-1">
+                            <div 
+                              className={`h-1 rounded-full ${
+                                value >= 80 ? 'bg-red-500' : 
+                                value >= 60 ? 'bg-orange-500' : 'bg-green-500'
+                              }`}
+                              style={{ width: `${value}%` }}
+                            />
+                          </div>
+                          <span className={`text-xs font-medium ${getScoreColor(value)}`}>
+                            {value}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              
+              {/* 近期案件记录 */}
+              <div className="bg-white border rounded p-2">
+                <h4 className="font-bold text-gray-800 mb-2 flex items-center text-xs">
+                  📋 近期案件记录
+                </h4>
+                <div className="space-y-1">
+                  {currentArea.recentIncidents.slice(0, 3).map((incident, index) => (
+                    <div key={index} className="border-b pb-1 last:border-b-0">
+                      <div className="flex justify-between items-start">
+                        <div className="text-xs font-medium text-gray-800">{incident.type}</div>
+                        <div className={`px-1 py-0.5 rounded text-xs ${getStatusColor(incident.status)}`}>
+                          {incident.status}
+                        </div>
+                      </div>
+                      <div className="text-xs text-gray-500">{incident.time}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* 底部操作 */}
+          <div className="border-t p-2 flex justify-between">
+            <div className="flex space-x-1">
+              <button 
+                onClick={() => setCurrentIndex(Math.max(0, currentIndex - 1))}
+                disabled={currentIndex === 0}
+                className="px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+              >
+                上一个
+              </button>
+              <button 
+                onClick={() => setCurrentIndex(Math.min(areasData.length - 1, currentIndex + 1))}
+                disabled={currentIndex === areasData.length - 1}
+                className="px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+              >
+                下一个
+              </button>
+            </div>
+            <div className="flex space-x-1">
+              <button className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs">
+                生成报告
+              </button>
+              <button className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-xs">
+                制定方案
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   // 渲染路网分析图表
@@ -430,9 +822,12 @@ const SpatialAnalysis = () => {
             <div className="text-2xl font-bold">{timeRange === 'today' ? '12' : timeRange === 'week' ? '32' : timeRange === 'month' ? '56' : '128'}</div>
             <div className="text-sm text-gray-500">热点区域</div>
           </div>
-          <div className="p-2 bg-gray-50 rounded">
+          <div className="p-2 bg-gray-50 rounded cursor-pointer hover:shadow-lg transition-shadow relative"
+               onClick={() => setIsRiskModalOpen(true)}>
             <div className="text-2xl font-bold text-red-500">5</div>
             <div className="text-sm text-gray-500">高风险区域</div>
+            <div className="text-xs text-blue-500 mt-1">点击查看详情</div>
+            <div className="absolute top-2 right-2 w-8 h-8 bg-red-100 text-red-500 rounded-full flex items-center justify-center opacity-20 text-lg">⚠️</div>
           </div>
           <div className="p-2 bg-gray-50 rounded">
             <div className="text-2xl font-bold">42.5%</div>
@@ -666,47 +1061,215 @@ const SpatialAnalysis = () => {
       <div className="bg-white p-4 mb-4 rounded shadow">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-bold">动态时空演变分析</h2>
-          <div className="flex">
-            <button className="px-3 py-1 bg-blue-100 text-blue-500 rounded text-sm mr-2">
-              播放动画
+          <div className="flex items-center space-x-2">
+            <button 
+              className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors"
+              onClick={() => {
+                // 模拟播放动画
+                const button = document.querySelector('.animation-btn');
+                if (button) {
+                  button.textContent = '播放中...';
+                  button.disabled = true;
+                  setTimeout(() => {
+                    button.textContent = '重新播放';
+                    button.disabled = false;
+                  }, 5000);
+                }
+              }}
+            >
+              <span className="animation-btn">播放动画</span>
             </button>
-            <select className="px-3 py-1 bg-gray-100 text-sm rounded">
+            <select className="px-3 py-1 bg-gray-100 text-sm rounded border">
               <option value="1h">1小时间隔</option>
               <option value="3h">3小时间隔</option>
               <option value="6h">6小时间隔</option>
               <option value="12h">12小时间隔</option>
               <option value="1d">1天间隔</option>
               <option value="1w">1周间隔</option>
-              <option value="1m">1月间隔</option>
             </select>
           </div>
         </div>
         
-        <div className="h-64 bg-gray-100 rounded flex items-center justify-center mb-3">
-          <div className="text-center">
-            <div className="text-lg font-bold text-gray-500 mb-2">警情空间分布动态演变</div>
-            <div className="text-sm text-gray-400">展示警情热点随时间变化的动态演变过程</div>
+        <div className="grid grid-cols-3 gap-4 mb-4">
+          {/* 时空热力图动画 */}
+          <div className="col-span-2">
+            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-4 h-80 relative overflow-hidden">
+              <div className="text-center mb-4">
+                <h3 className="text-lg font-bold text-gray-700">警情时空分布动态演变</h3>
+                <div className="text-sm text-gray-500">当前时间：2025-05-07 14:30</div>
+              </div>
+              
+              {/* 模拟热力图动画区域 */}
+              <div className="relative h-60 bg-white rounded border">
+                {/* 模拟城市区域 */}
+                <div className="absolute inset-2">
+                  {/* 商业区热点 */}
+                  <div className="absolute top-8 left-12 w-16 h-12 bg-red-400 rounded-full opacity-70 animate-pulse">
+                    <div className="absolute inset-0 bg-red-300 rounded-full animate-ping"></div>
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-xs text-white font-bold">
+                      商圈
+                    </div>
+                  </div>
+                  
+                  {/* 交通枢纽热点 */}
+                  <div className="absolute top-16 right-16 w-12 h-12 bg-orange-400 rounded-full opacity-60 animate-pulse" style={{animationDelay: '0.5s'}}>
+                    <div className="absolute inset-0 bg-orange-300 rounded-full animate-ping" style={{animationDelay: '0.5s'}}></div>
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-xs text-white font-bold">
+                      路口
+                    </div>
+                  </div>
+                  
+                  {/* 居民区热点 */}
+                  <div className="absolute bottom-12 left-20 w-10 h-10 bg-yellow-400 rounded-full opacity-50 animate-pulse" style={{animationDelay: '1s'}}>
+                    <div className="absolute inset-0 bg-yellow-300 rounded-full animate-ping" style={{animationDelay: '1s'}}></div>
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-xs text-white font-bold">
+                      小区
+                    </div>
+                  </div>
+                  
+                  {/* 娱乐区热点 */}
+                  <div className="absolute bottom-8 right-12 w-14 h-10 bg-purple-400 rounded-full opacity-60 animate-pulse" style={{animationDelay: '1.5s'}}>
+                    <div className="absolute inset-0 bg-purple-300 rounded-full animate-ping" style={{animationDelay: '1.5s'}}></div>
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-xs text-white font-bold">
+                      夜市
+                    </div>
+                  </div>
+                  
+                  {/* 连接线动画 */}
+                  <svg className="absolute inset-0 w-full h-full">
+                    <defs>
+                      <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style={{stopColor: '#3B82F6', stopOpacity: 0}} />
+                        <stop offset="50%" style={{stopColor: '#3B82F6', stopOpacity: 0.8}} />
+                        <stop offset="100%" style={{stopColor: '#3B82F6', stopOpacity: 0}} />
+                      </linearGradient>
+                    </defs>
+                    <path d="M 80 50 Q 150 80 240 70" stroke="url(#lineGradient)" strokeWidth="2" fill="none" className="animate-pulse" />
+                    <path d="M 120 180 Q 180 120 280 140" stroke="url(#lineGradient)" strokeWidth="2" fill="none" className="animate-pulse" style={{animationDelay: '0.5s'}} />
+                  </svg>
+                </div>
+                
+                {/* 时间轴控制器 */}
+                <div className="absolute bottom-2 left-2 right-2 bg-white bg-opacity-90 rounded p-2">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs text-gray-600">00:00</span>
+                    <div className="flex-1 bg-gray-200 rounded-full h-2 relative">
+                      <div className="bg-blue-500 h-2 rounded-full w-1/2 relative">
+                        <div className="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-blue-600 rounded-full border-2 border-white shadow"></div>
+                      </div>
+                    </div>
+                    <span className="text-xs text-gray-600">24:00</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* 实时统计面板 */}
+          <div className="space-y-4">
+            <div className="bg-gradient-to-r from-red-50 to-red-100 p-3 rounded-lg">
+              <div className="text-sm text-red-600 font-medium">当前活跃热点</div>
+              <div className="text-2xl font-bold text-red-700">4个</div>
+              <div className="text-xs text-red-500">较1小时前 +1</div>
+            </div>
+            
+            <div className="bg-gradient-to-r from-orange-50 to-orange-100 p-3 rounded-lg">
+              <div className="text-sm text-orange-600 font-medium">热点强度指数</div>
+              <div className="text-2xl font-bold text-orange-700">78</div>
+              <div className="text-xs text-orange-500">中等强度</div>
+            </div>
+            
+            <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-3 rounded-lg">
+              <div className="text-sm text-blue-600 font-medium">扩散速度</div>
+              <div className="text-2xl font-bold text-blue-700">2.3</div>
+              <div className="text-xs text-blue-500">km/h</div>
+            </div>
+            
+            <div className="bg-gradient-to-r from-green-50 to-green-100 p-3 rounded-lg">
+              <div className="text-sm text-green-600 font-medium">预测准确率</div>
+              <div className="text-2xl font-bold text-green-700">85%</div>
+              <div className="text-xs text-green-500">模型可信度高</div>
+            </div>
           </div>
         </div>
         
+        {/* 演变趋势图表 */}
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="bg-white border rounded-lg p-3">
+            <h4 className="font-medium mb-3 text-gray-700">热点强度变化趋势</h4>
+            <div className="h-32">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={[
+                  { time: '06:00', 商圈: 20, 路口: 45, 小区: 15, 夜市: 5 },
+                  { time: '09:00', 商圈: 65, 路口: 80, 小区: 25, 夜市: 8 },
+                  { time: '12:00', 商圈: 85, 路口: 60, 小区: 30, 夜市: 12 },
+                  { time: '15:00', 商圈: 90, 路口: 70, 小区: 20, 夜市: 15 },
+                  { time: '18:00', 商圈: 75, 路口: 95, 小区: 40, 夜市: 25 },
+                  { time: '21:00', 商圈: 60, 路口: 50, 小区: 35, 夜市: 80 },
+                  { time: '24:00', 商圈: 30, 路口: 25, 小区: 45, 夜市: 90 }
+                ]}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="time" tick={{fontSize: 10}} />
+                  <YAxis tick={{fontSize: 10}} />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="商圈" stroke="#EF4444" strokeWidth={2} dot={{r: 3}} />
+                  <Line type="monotone" dataKey="路口" stroke="#F97316" strokeWidth={2} dot={{r: 3}} />
+                  <Line type="monotone" dataKey="小区" stroke="#EAB308" strokeWidth={2} dot={{r: 3}} />
+                  <Line type="monotone" dataKey="夜市" stroke="#8B5CF6" strokeWidth={2} dot={{r: 3}} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          
+          <div className="bg-white border rounded-lg p-3">
+            <h4 className="font-medium mb-3 text-gray-700">热点迁移路径分析</h4>
+            <div className="h-32">
+              <ResponsiveContainer width="100%" height="100%">
+                <ScatterChart data={[
+                  { x: 20, y: 30, z: 400, name: '商圈早高峰' },
+                  { x: 60, y: 80, z: 600, name: '路口早高峰' },
+                  { x: 40, y: 20, z: 300, name: '小区午间' },
+                  { x: 80, y: 60, z: 500, name: '商圈午间' },
+                  { x: 90, y: 85, z: 700, name: '路口晚高峰' },
+                  { x: 30, y: 90, z: 800, name: '夜市夜间' },
+                  { x: 50, y: 40, z: 350, name: '小区夜间' }
+                ]}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="x" name="东西向位置" tick={{fontSize: 10}} />
+                  <YAxis dataKey="y" name="南北向位置" tick={{fontSize: 10}} />
+                  <Tooltip cursor={{ strokeDasharray: '3 3' }} />
+                  <Scatter dataKey="z" fill="#3B82F6" />
+                </ScatterChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+        
+        {/* 分析结果和建议 */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-blue-50 p-3 rounded">
-            <h3 className="font-medium mb-2">时空演变规律</h3>
-            <ul className="list-disc pl-5 text-sm space-y-2">
-              <li>商业区警情热点在工作日向周边扩散，周末集中在核心区域</li>
-              <li>交通类警情热点随早晚高峰在主要道路上移动</li>
-              <li>夜间警情热点主要集中在娱乐场所和居民区</li>
-              <li>警情热点整体呈现"工作日分散、周末集中"的周期性变化</li>
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <h3 className="font-medium mb-3 flex items-center">
+              <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+              时空演变规律发现
+            </h3>
+            <ul className="list-disc pl-5 text-sm space-y-2 text-gray-700">
+              <li><strong>潮汐效应：</strong>商业区警情热点在工作日呈现明显的潮汐变化，早晚高峰向周边扩散</li>
+              <li><strong>时间迁移：</strong>热点从白天的商业区逐步向夜间的娱乐区转移，迁移速度约2.3km/h</li>
+              <li><strong>周期性：</strong>每24小时为一个完整周期，周末模式与工作日存在显著差异</li>
+              <li><strong>空间聚集：</strong>高风险区域呈现"核心-边缘"的圈层扩散模式</li>
             </ul>
           </div>
           
-          <div className="bg-green-50 p-3 rounded">
-            <h3 className="font-medium mb-2">预测与建议</h3>
-            <ul className="list-disc pl-5 text-sm space-y-2">
-              <li>预计本周末XX商圈将形成新的警情高发区</li>
-              <li>建议在早晚高峰时段增派警力巡逻主要交通路口</li>
-              <li>XX广场周边区域夜间警情有上升趋势，建议加强巡防</li>
-              <li>根据热点迁移趋势，下周应重点关注城东新开发区域</li>
+          <div className="bg-green-50 p-4 rounded-lg">
+            <h3 className="font-medium mb-3 flex items-center">
+              <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+              智能预测与建议
+            </h3>
+            <ul className="list-disc pl-5 text-sm space-y-2 text-gray-700">
+              <li><strong>短期预测：</strong>预计18:00-20:00时段XX路口将形成新的警情高发区</li>
+              <li><strong>警力调配：</strong>建议在热点迁移路径上提前部署机动警力，响应时间可缩短35%</li>
+              <li><strong>重点防控：</strong>XX夜市区域夜间警情呈上升趋势，建议22:00后增加巡防频次</li>
+              <li><strong>长期规划：</strong>根据热点演变趋势，建议在城东新区增设警务站点</li>
             </ul>
           </div>
         </div>
@@ -714,77 +1277,19 @@ const SpatialAnalysis = () => {
       
       {/* 选中区域详情模态框 */}
       {selectedArea && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg w-full max-w-2xl">
-            <div className="p-5 border-b border-gray-200 flex justify-between">
-              <div className="font-bold text-lg">区域详情 - {selectedArea.name}</div>
-              <button className="text-2xl" onClick={() => setSelectedArea(null)}>&times;</button>
-            </div>
-            <div className="p-5 grid grid-cols-2 gap-4">
-              <div>
-                <div className="h-48 bg-gray-100 rounded flex items-center justify-center mb-3">
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-gray-500">区域地图</div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="bg-gray-50 p-2 rounded">
-                    <div className="text-xs text-gray-500">警情总数</div>
-                    <div className="text-lg font-bold">{selectedArea.count}</div>
-                  </div>
-                  <div className="bg-gray-50 p-2 rounded">
-                    <div className="text-xs text-gray-500">主要类型</div>
-                    <div className="text-lg font-bold">{selectedArea.type}</div>
-                  </div>
-                  <div className="bg-gray-50 p-2 rounded">
-                    <div className="text-xs text-gray-500">风险等级</div>
-                    <div className="text-lg font-bold text-red-500">
-                      {selectedArea.risk === 'high' ? '高' : selectedArea.risk === 'medium' ? '中' : '低'}
-                    </div>
-                  </div>
-                  <div className="bg-gray-50 p-2 rounded">
-                    <div className="text-xs text-gray-500">环比变化</div>
-                    <div className="text-lg font-bold text-red-500">+12.5%</div>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <h3 className="font-medium mb-2">区域警情分析</h3>
-                <div className="space-y-3 text-sm">
-                  <p className="bg-blue-50 p-2 rounded">
-                    该区域为辖区内警情高发区，主要以{selectedArea.type}类警情为主，占总量的62%。警情多发生在18:00-22:00时段。
-                  </p>
-                  <h4 className="font-medium">成因分析</h4>
-                  <ul className="list-disc pl-5 space-y-1">
-                    <li>商业密集区人流量大</li>
-                    <li>周边交通路网复杂</li>
-                    <li>夜间照明不足</li>
-                    <li>周边娱乐场所集中</li>
-                  </ul>
-                  <h4 className="font-medium">建议措施</h4>
-                  <ul className="list-disc pl-5 space-y-1">
-                    <li>增派警力定点巡逻</li>
-                    <li>设置临时警务点</li>
-                    <li>加强视频监控覆盖</li>
-                    <li>开展针对性宣传工作</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-            <div className="p-5 border-t border-gray-200 flex justify-end">
-              <button 
-                className="bg-gray-200 px-4 py-2 rounded mr-2"
-                onClick={() => setSelectedArea(null)}
-              >
-                关闭
-              </button>
-              <button className="bg-blue-500 text-white px-4 py-2 rounded">
-                详细报告
-              </button>
-            </div>
-          </div>
-        </div>
+        <AreaRiskDetailModal
+          isOpen={selectedArea !== null}
+          onClose={() => setSelectedArea(null)}
+          areasData={highRiskAreasData}
+        />
       )}
+      
+      {/* 区域风险详情弹窗 */}
+      <AreaRiskDetailModal 
+        isOpen={isRiskModalOpen}
+        onClose={() => setIsRiskModalOpen(false)}
+        areasData={highRiskAreasData}
+      />
     </Layout>
   );
 };

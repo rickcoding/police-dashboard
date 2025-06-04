@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  PieChart, Pie, Cell, LineChart, Line, RadarChart, PolarGrid, PolarAngleAxis, 
+  PolarRadiusAxis, Radar, ComposedChart, Area, AreaChart
+} from 'recharts';
 import Layout from '../components/Layout';
 
 const PersonnelAnalysis = () => {
@@ -61,6 +65,44 @@ const PersonnelAnalysis = () => {
     { id: 5, police: '社区警务', avgTime: 3.6, caseCount: 195, solveRate: 82.6 }
   ];
   
+  // 警力资源地图数据
+  const resourceMapData = [
+    { area: '东部片区', police: 56, alerts: 68, load: 132, lat: 31.2400, lng: 121.5300 },
+    { area: '西部片区', police: 42, alerts: 65, load: 156, lat: 31.2200, lng: 121.4800 },
+    { area: '南部片区', police: 48, alerts: 68, load: 142, lat: 31.2100, lng: 121.5100 },
+    { area: '北部片区', police: 38, alerts: 62, load: 162, lat: 31.2500, lng: 121.5200 },
+    { area: '中心城区', police: 65, alerts: 75, load: 115, lat: 31.2300, lng: 121.5100 }
+  ];
+
+  // 时间趋势数据
+  const timeTrendData = [
+    { time: '00:00', 未成年人: 12, 青年: 58, 中年: 25, 老年: 8 },
+    { time: '04:00', 未成年人: 5, 青年: 32, 中年: 18, 老年: 15 },
+    { time: '08:00', 未成年人: 25, 青年: 85, 中年: 65, 老年: 28 },
+    { time: '12:00', 未成年人: 45, 青年: 125, 中年: 95, 老年: 42 },
+    { time: '16:00', 未成年人: 55, 青年: 145, 中年: 105, 老年: 38 },
+    { time: '20:00', 未成年人: 38, 青年: 165, 中年: 125, 老年: 55 },
+  ];
+
+  // 群体特征雷达数据
+  const groupRadarData = [
+    { subject: '财产类警情', 未成年人: 35, 青年: 85, 中年: 65, 老年: 45 },
+    { subject: '治安类警情', 未成年人: 45, 青年: 90, 中年: 55, 老年: 25 },
+    { subject: '交通类警情', 未成年人: 25, 青年: 70, 中年: 85, 老年: 35 },
+    { subject: '纠纷类警情', 未成年人: 15, 青年: 60, 中年: 75, 老年: 65 },
+    { subject: '诈骗类警情', 未成年人: 20, 青年: 40, 中年: 55, 老年: 80 },
+    { subject: '噪音类警情', 未成年人: 30, 青年: 55, 中年: 70, 老年: 45 }
+  ];
+
+  // 民警绩效雷达数据
+  const performanceRadarData = [
+    { metric: '处置效率', 刑侦大队: 65, 治安大队: 80, 交警大队: 95, 巡警大队: 85, 社区警务: 70 },
+    { metric: '案件数量', 刑侦大队: 70, 治安大队: 85, 交警大队: 100, 巡警大队: 90, 社区警务: 75 },
+    { metric: '处置质量', 刑侦大队: 85, 治安大队: 90, 交警大队: 95, 巡警大队: 88, 社区警务: 80 },
+    { metric: '群众满意度', 刑侦大队: 75, 治安大队: 85, 交警大队: 92, 巡警大队: 88, 社区警务: 82 },
+    { metric: '工作负荷', 刑侦大队: 85, 治安大队: 75, 交警大队: 70, 巡警大队: 80, 社区警务: 85 }
+  ];
+  
   // 返回趋势颜色
   const getTrendColor = (trend = '') => {
     if (typeof trend !== 'string') return 'text-gray-500';
@@ -74,6 +116,167 @@ const PersonnelAnalysis = () => {
     return 'text-red-600';
   };
   
+  // 颜色配置
+  const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#00ff00', '#ff6b6b'];
+
+  // 渲染警力资源图表
+  const renderResourceChart = () => {
+    switch (resourceTab) {
+      case 'distribution':
+        const sortedDistributionData = [...policeResourceData].sort((a,b) => b.police - a.police);
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart data={sortedDistributionData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="area" fontSize={12} />
+              <YAxis yAxisId="left" fontSize={12} />
+              <YAxis yAxisId="right" orientation="right" fontSize={12} />
+              <Tooltip />
+              <Legend />
+              <Bar yAxisId="left" dataKey="police" name="警力数量" fill="#8884d8" />
+              <Line yAxisId="right" type="monotone" dataKey="ratio" name="配置比例" stroke="#ff7300" strokeWidth={2} />
+            </ComposedChart>
+          </ResponsiveContainer>
+        );
+      case 'match':
+        const sortedMatchData = [...policeResourceData].sort((a,b) => b.ratio - a.ratio);
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={sortedMatchData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="area" fontSize={12} />
+              <YAxis fontSize={12} />
+              <Tooltip formatter={(value) => [`${value}`, '匹配度']} />
+              <Legend />
+              <Bar dataKey="ratio" name="警情匹配度" radius={[4, 4, 0, 0]}>
+                {sortedMatchData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.ratio >= 1.2 ? '#4ade80' : entry.ratio >= 0.8 ? '#fbbf24' : '#f87171'} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        );
+      case 'workload': // AreaChart, no direct bar sorting needed as per current request focus
+        const sortedWorkloadData = [...policeResourceData].sort((a,b) => b.workload - a.workload);
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={sortedWorkloadData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="area" fontSize={12} />
+              <YAxis fontSize={12} />
+              <Tooltip formatter={(value) => [`${value}`, '工作负荷']} />
+              <Legend />
+              <Area 
+                type="monotone" 
+                dataKey="workload" 
+                name="工作负荷指数"
+                stroke="#8884d8" 
+                fill="#8884d8" 
+                fillOpacity={0.6}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        );
+      case 'optimize':
+        const optimizeData = [
+          { area: '西部片区', current: 42, optimized: 50, improvement: 19 },
+          { area: '北部片区', current: 38, optimized: 44, improvement: 16 },
+          { area: '南部片区', current: 48, optimized: 46, improvement: -4 },
+          { area: '东部片区', current: 56, optimized: 53, improvement: -5 },
+          { area: '中心城区', current: 65, optimized: 61, improvement: -6 }
+        ];
+        const sortedOptimizeData = [...optimizeData].sort((a,b) => b.optimized - a.optimized);
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={sortedOptimizeData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="area" fontSize={12} />
+              <YAxis fontSize={12} />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="current" name="当前配置" fill="#94a3b8" />
+              <Bar dataKey="optimized" name="优化配置" fill="#3b82f6" />
+            </BarChart>
+          </ResponsiveContainer>
+        );
+      default:
+        return null;
+    }
+  };
+
+  // 渲染民警绩效图表
+  const renderPerformanceChart = () => {
+    switch (performanceTab) {
+      case 'efficiency':
+        const sortedEfficiencyData = [...policePerformanceData].sort((a, b) => b.avgTime - a.avgTime);
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={sortedEfficiencyData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="police" fontSize={11} angle={-45} textAnchor="end" height={80} />
+              <YAxis fontSize={12} label={{ value: '时长(小时)', angle: -90, position: 'insideLeft' }} />
+              <Tooltip formatter={(value) => [`${value}小时`, '处置时长']} />
+              <Legend />
+              <Bar dataKey="avgTime" name="平均处置时长" radius={[4, 4, 0, 0]}>
+                {sortedEfficiencyData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.avgTime < 1.5 ? '#4ade80' : entry.avgTime < 3 ? '#fbbf24' : '#f87171'} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        );
+      case 'count':
+        const sortedCaseCountData = [...policePerformanceData].sort((a, b) => b.caseCount - a.caseCount);
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={sortedCaseCountData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="police" fontSize={11} angle={-45} textAnchor="end" height={80} />
+              <YAxis fontSize={12} />
+              <Tooltip formatter={(value) => [`${value}起`, '处置数量']} />
+              <Legend />
+              <Bar dataKey="caseCount" name="警情处置数量" fill="#82ca9d" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        );
+      case 'rate':
+        const sortedRateData = [...policePerformanceData].sort((a, b) => b.solveRate - a.solveRate);
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={sortedRateData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="police" fontSize={11} angle={-45} textAnchor="end" height={80} />
+              <YAxis fontSize={12} domain={[0, 100]} label={{ value: '处置率(%)', angle: -90, position: 'insideLeft' }} />
+              <Tooltip formatter={(value) => [`${value}%`, '处置率']} />
+              <Legend />
+              <Bar dataKey="solveRate" name="警情处置率" radius={[4, 4, 0, 0]}>
+                {sortedRateData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.solveRate > 90 ? '#4ade80' : entry.solveRate > 80 ? '#fbbf24' : '#f87171'} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        );
+      case 'satisfaction':
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+            <RadarChart data={performanceRadarData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+              <PolarGrid />
+              <PolarAngleAxis dataKey="metric" fontSize={11} />
+              <PolarRadiusAxis domain={[0, 100]} fontSize={10} />
+              <Tooltip />
+              <Radar name="交警大队" dataKey="交警大队" stroke="#8884d8" fill="#8884d8" fillOpacity={0.3} />
+              <Radar name="巡警大队" dataKey="巡警大队" stroke="#82ca9d" fill="#82ca9d" fillOpacity={0.3} />
+              <Radar name="治安大队" dataKey="治安大队" stroke="#ffc658" fill="#ffc658" fillOpacity={0.3} />
+              <Legend />
+            </RadarChart>
+          </ResponsiveContainer>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <Layout title="人员维度分析">
       {/* 人员维度控制面板 */}
@@ -194,19 +397,18 @@ const PersonnelAnalysis = () => {
             </div>
             
             <div className="grid grid-cols-5 gap-4">
-              <div className="col-span-3 h-[500px] bg-gray-100 rounded flex items-center justify-center">
-                {/* 图表区域 */}
+              <div className="col-span-3 bg-white border rounded p-3" style={{ height: '380px' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={
                       portraitTab === 'age'
-                        ? ageGroupData
+                        ? [...ageGroupData].sort((a,b) => b.count - a.count)
                         : portraitTab === 'identity'
-                          ? identityData
+                          ? [...identityData].sort((a,b) => b.count - a.count)
                           : portraitTab === 'role'
-                            ? roleData
+                            ? [...roleData].sort((a,b) => b.count - a.count)
                             : portraitTab === 'special'
-                              ? specialGroupData
+                              ? [...specialGroupData].sort((a,b) => b.count - a.count)
                               : []
                     }
                     margin={{
@@ -229,90 +431,96 @@ const PersonnelAnalysis = () => {
                                 ? 'group'
                                 : ''
                       }
+                      fontSize={11}
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
                     />
-                    <YAxis />
+                    <YAxis fontSize={12} />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="count" fill="#8884d8" />
+                    <Bar dataKey="count" name="涉及人数" fill="#8884d8" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
               
-              <div className="col-span-2">
-                <div className="font-medium mb-2">
-                  {portraitTab === 'age' ? '年龄段分布' : 
-                   portraitTab === 'identity' ? '身份类型分布' : 
-                   portraitTab === 'role' ? '角色分布' :
-                   '特殊群体分布'}
-                </div>
-                <div className="overflow-y-auto max-h-64">
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-2 py-2 text-left font-medium text-gray-500">
-                          {portraitTab === 'age' ? '年龄段' : 
-                           portraitTab === 'identity' ? '身份类型' : 
-                           portraitTab === 'role' ? '角色类型' :
-                           '群体类型'}
-                        </th>
-                        <th className="px-2 py-2 text-center font-medium text-gray-500">数量</th>
-                        <th className="px-2 py-2 text-center font-medium text-gray-500">占比</th>
-                        <th className="px-2 py-2 text-center font-medium text-gray-500">环比</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {portraitTab === 'age' && ageGroupData.map(group => (
-                        <tr key={group.id} className="border-b cursor-pointer hover:bg-blue-50"
-                            onClick={() => setSelectedGroup(group)}>
-                          <td className="px-2 py-2">{group.group}</td>
-                          <td className="px-2 py-2 text-center">{group.count}</td>
-                          <td className="px-2 py-2 text-center">{group.ratio}%</td>
-                          <td className={`px-2 py-2 text-center ${getTrendColor(group.trend)}`}>
-                            {group.trend}
-                          </td>
+              <div className="col-span-2 flex flex-col">
+                <div>
+                  <div className="font-medium mb-2">
+                    {portraitTab === 'age' ? '年龄段分布' : 
+                     portraitTab === 'identity' ? '身份类型分布' : 
+                     portraitTab === 'role' ? '角色分布' :
+                     '特殊群体分布'}
+                  </div>
+                  <div className="overflow-y-auto max-h-[250px] mb-3">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-2 py-2 text-left font-medium text-gray-500">
+                            {portraitTab === 'age' ? '年龄段' : 
+                             portraitTab === 'identity' ? '身份类型' : 
+                             portraitTab === 'role' ? '角色类型' :
+                             '群体类型'}
+                          </th>
+                          <th className="px-2 py-2 text-center font-medium text-gray-500">数量</th>
+                          <th className="px-2 py-2 text-center font-medium text-gray-500">占比</th>
+                          <th className="px-2 py-2 text-center font-medium text-gray-500">环比</th>
                         </tr>
-                      ))}
-                      
-                      {portraitTab === 'identity' && identityData.map(item => (
-                        <tr key={item.id} className="border-b cursor-pointer hover:bg-blue-50"
-                            onClick={() => setSelectedGroup(item)}>
-                          <td className="px-2 py-2">{item.type}</td>
-                          <td className="px-2 py-2 text-center">{item.count}</td>
-                          <td className="px-2 py-2 text-center">{item.ratio}%</td>
-                          <td className={`px-2 py-2 text-center ${getTrendColor(item.trend)}`}>
-                            {item.trend}
-                          </td>
-                        </tr>
-                      ))}
-                      
-                      {portraitTab === 'role' && roleData.map(item => (
-                        <tr key={item.id} className="border-b cursor-pointer hover:bg-blue-50"
-                            onClick={() => setSelectedGroup(item)}>
-                          <td className="px-2 py-2">{item.role}</td>
-                          <td className="px-2 py-2 text-center">{item.count}</td>
-                          <td className="px-2 py-2 text-center">{item.ratio}%</td>
-                          <td className={`px-2 py-2 text-center ${getTrendColor(item.trend)}`}>
-                            {item.trend}
-                          </td>
-                        </tr>
-                      ))}
-                      
-                      {portraitTab === 'special' && specialGroupData.map(item => (
-                        <tr key={item.id} className="border-b cursor-pointer hover:bg-blue-50"
-                            onClick={() => setSelectedGroup(item)}>
-                          <td className="px-2 py-2">{item.group}</td>
-                          <td className="px-2 py-2 text-center">{item.count}</td>
-                          <td className="px-2 py-2 text-center">{item.ratio}%</td>
-                          <td className={`px-2 py-2 text-center ${getTrendColor(item.trend)}`}>
-                            {item.trend}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {portraitTab === 'age' && ageGroupData.map(group => (
+                          <tr key={group.id} className="border-b cursor-pointer hover:bg-blue-50"
+                              onClick={() => setSelectedGroup(group)}>
+                            <td className="px-2 py-2">{group.group}</td>
+                            <td className="px-2 py-2 text-center">{group.count}</td>
+                            <td className="px-2 py-2 text-center">{group.ratio}%</td>
+                            <td className={`px-2 py-2 text-center ${getTrendColor(group.trend)}`}>
+                              {group.trend}
+                            </td>
+                          </tr>
+                        ))}
+                        
+                        {portraitTab === 'identity' && identityData.map(item => (
+                          <tr key={item.id} className="border-b cursor-pointer hover:bg-blue-50"
+                              onClick={() => setSelectedGroup(item)}>
+                            <td className="px-2 py-2">{item.type}</td>
+                            <td className="px-2 py-2 text-center">{item.count}</td>
+                            <td className="px-2 py-2 text-center">{item.ratio}%</td>
+                            <td className={`px-2 py-2 text-center ${getTrendColor(item.trend)}`}>
+                              {item.trend}
+                            </td>
+                          </tr>
+                        ))}
+                        
+                        {portraitTab === 'role' && roleData.map(item => (
+                          <tr key={item.id} className="border-b cursor-pointer hover:bg-blue-50"
+                              onClick={() => setSelectedGroup(item)}>
+                            <td className="px-2 py-2">{item.role}</td>
+                            <td className="px-2 py-2 text-center">{item.count}</td>
+                            <td className="px-2 py-2 text-center">{item.ratio}%</td>
+                            <td className={`px-2 py-2 text-center ${getTrendColor(item.trend)}`}>
+                              {item.trend}
+                            </td>
+                          </tr>
+                        ))}
+                        
+                        {portraitTab === 'special' && specialGroupData.map(item => (
+                          <tr key={item.id} className="border-b cursor-pointer hover:bg-blue-50"
+                              onClick={() => setSelectedGroup(item)}>
+                            <td className="px-2 py-2">{item.group}</td>
+                            <td className="px-2 py-2 text-center">{item.count}</td>
+                            <td className="px-2 py-2 text-center">{item.ratio}%</td>
+                            <td className={`px-2 py-2 text-center ${getTrendColor(item.trend)}`}>
+                              {item.trend}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
                 
-                <div className="mt-4 p-3 bg-blue-50 rounded text-sm">
+                <div className="p-3 bg-blue-50 rounded text-sm flex-grow">
                   <div className="font-medium mb-1">群体特征分析</div>
                   <ul className="list-disc pl-5 space-y-1">
                     {portraitTab === 'age' && (
@@ -355,8 +563,10 @@ const PersonnelAnalysis = () => {
               </div>
             </div>
             
+            {/* Grid for 群体特征关联 and 警务策略建议 */}
+            {/* This lower grid's height also contributes to the overall perceived balance */}
             <div className="grid grid-cols-2 gap-4 mt-4">
-              <div className="bg-blue-50 p-3 rounded">
+              <div className="bg-blue-50 p-3 rounded h-full">
                 <h3 className="font-medium mb-2">群体特征关联</h3>
                 <div className="space-y-2 text-sm">
                   <ul className="list-disc pl-5">
@@ -403,7 +613,7 @@ const PersonnelAnalysis = () => {
                 </div>
               </div>
               
-              <div className="bg-green-50 p-3 rounded">
+              <div className="bg-green-50 p-3 rounded h-full">
                 <h3 className="font-medium mb-2">警务策略建议</h3>
                 <div className="space-y-2 text-sm">
                   {portraitTab === 'age' && (
@@ -481,161 +691,150 @@ const PersonnelAnalysis = () => {
             </div>
             
             <div className="grid grid-cols-5 gap-4">
-              <div className="col-span-3 h-72 bg-gray-100 rounded flex items-center justify-center">
-                <div className="text-center">
-                  <div className="text-lg font-bold text-gray-500 mb-2">
-                    {resourceTab === 'distribution' ? '警力分布地图' : 
-                     resourceTab === 'match' ? '警情警力匹配度地图' : 
-                     resourceTab === 'workload' ? '警力工作负荷分布图' :
-                     '警力资源优化建议图'}
-                  </div>
-                  <div className="text-sm text-gray-400">
-                    {resourceTab === 'distribution' ? '展示辖区内警力资源的空间分布情况' : 
-                     resourceTab === 'match' ? '展示警情数量与警力配置的匹配程度' : 
-                     resourceTab === 'workload' ? '展示各区域警力工作负荷情况' :
-                     '展示警力资源优化调配的建议方案'}
-                  </div>
-                </div>
+              <div className="col-span-3 bg-white border rounded p-3" style={{ height: '400px' }}>
+                {renderResourceChart()}
               </div>
               
-              <div className="col-span-2">
-                <div className="font-medium mb-2">
-                  {resourceTab === 'distribution' ? '各区域警力分布' : 
-                   resourceTab === 'match' ? '警情警力匹配度' : 
-                   resourceTab === 'workload' ? '警力工作负荷' :
-                   '优化调整建议'}
-                </div>
-                <div className="overflow-y-auto max-h-64">
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-50">
-                      <tr>
-                      <th className="px-2 py-2 text-left font-medium text-gray-500">
-                          {resourceTab === 'distribution' ? '区域' : 
-                           resourceTab === 'match' ? '区域' : 
-                           resourceTab === 'workload' ? '区域' :
-                           '调整方向'}
-                        </th>
-                        <th className="px-2 py-2 text-center font-medium text-gray-500">
-                          {resourceTab === 'distribution' ? '警力数量' : 
-                           resourceTab === 'match' ? '匹配度' : 
-                           resourceTab === 'workload' ? '工作负荷' :
-                           '调整幅度'}
-                        </th>
-                        <th className="px-2 py-2 text-center font-medium text-gray-500">
-                          {resourceTab === 'distribution' ? '占比' : 
-                           resourceTab === 'match' ? '状态' : 
-                           resourceTab === 'workload' ? '状态' :
-                           '预期效果'}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {resourceTab === 'distribution' && policeResourceData.map(item => (
-                        <tr key={item.id} className="border-b cursor-pointer hover:bg-blue-50">
-                          <td className="px-2 py-2">{item.area}</td>
-                          <td className="px-2 py-2 text-center">{item.police}</td>
-                          <td className="px-2 py-2 text-center">{Math.round(item.police/policeResourceData.reduce((sum, i) => sum + i.police, 0)*100)}%</td>
+              <div className="col-span-2 flex flex-col">
+                <div>
+                  <div className="font-medium mb-2">
+                    {resourceTab === 'distribution' ? '各区域警力分布' : 
+                     resourceTab === 'match' ? '警情警力匹配度' : 
+                     resourceTab === 'workload' ? '警力工作负荷' :
+                     '优化调整建议'}
+                  </div>
+                  <div className="overflow-y-auto max-h-[250px] mb-3">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-50">
+                        <tr>
+                        <th className="px-2 py-2 text-left font-medium text-gray-500">
+                            {resourceTab === 'distribution' ? '区域' : 
+                             resourceTab === 'match' ? '区域' : 
+                             resourceTab === 'workload' ? '区域' :
+                             '调整方向'}
+                          </th>
+                          <th className="px-2 py-2 text-center font-medium text-gray-500">
+                            {resourceTab === 'distribution' ? '警力数量' : 
+                             resourceTab === 'match' ? '匹配度' : 
+                             resourceTab === 'workload' ? '工作负荷' :
+                             '调整幅度'}
+                          </th>
+                          <th className="px-2 py-2 text-center font-medium text-gray-500">
+                            {resourceTab === 'distribution' ? '占比' : 
+                             resourceTab === 'match' ? '状态' : 
+                             resourceTab === 'workload' ? '状态' :
+                             '预期效果'}
+                          </th>
                         </tr>
-                      ))}
+                      </thead>
+                      <tbody>
+                        {resourceTab === 'distribution' && policeResourceData.map(item => (
+                          <tr key={item.id} className="border-b cursor-pointer hover:bg-blue-50">
+                            <td className="px-2 py-2">{item.area}</td>
+                            <td className="px-2 py-2 text-center">{item.police}</td>
+                            <td className="px-2 py-2 text-center">{Math.round(item.police/policeResourceData.reduce((sum, i) => sum + i.police, 0)*100)}%</td>
+                          </tr>
+                        ))}
+                        
+                        {resourceTab === 'match' && policeResourceData.map(item => (
+                          <tr key={item.id} className="border-b cursor-pointer hover:bg-blue-50">
+                            <td className="px-2 py-2">{item.area}</td>
+                            <td className="px-2 py-2 text-center">{item.ratio}</td>
+                            <td className={`px-2 py-2 text-center ${getMatchColor(item.ratio)}`}>
+                              {item.ratio >= 1.2 ? '充足' : item.ratio >= 0.8 ? '一般' : '不足'}
+                            </td>
+                          </tr>
+                        ))}
+                        
+                        {resourceTab === 'workload' && policeResourceData.map(item => (
+                          <tr key={item.id} className="border-b cursor-pointer hover:bg-blue-50">
+                            <td className="px-2 py-2">{item.area}</td>
+                            <td className="px-2 py-2 text-center">{item.workload}</td>
+                            <td className={`px-2 py-2 text-center ${item.workload > 150 ? 'text-red-500' : item.workload > 130 ? 'text-yellow-500' : 'text-green-500'}`}>
+                              {item.workload > 150 ? '过载' : item.workload > 130 ? '较高' : '正常'}
+                            </td>
+                          </tr>
+                        ))}
+                        
+                        {resourceTab === 'optimize' && (
+                          <>
+                            <tr className="border-b cursor-pointer hover:bg-blue-50">
+                              <td className="px-2 py-2">西部片区</td>
+                              <td className="px-2 py-2 text-center text-red-500">+8</td>
+                              <td className="px-2 py-2 text-center">匹配度提升22%</td>
+                            </tr>
+                            <tr className="border-b cursor-pointer hover:bg-blue-50">
+                              <td className="px-2 py-2">北部片区</td>
+                              <td className="px-2 py-2 text-center text-red-500">+6</td>
+                              <td className="px-2 py-2 text-center">匹配度提升18%</td>
+                            </tr>
+                            <tr className="border-b cursor-pointer hover:bg-blue-50">
+                              <td className="px-2 py-2">中心城区</td>
+                              <td className="px-2 py-2 text-center text-green-500">-4</td>
+                              <td className="px-2 py-2 text-center">资源优化利用</td>
+                            </tr>
+                            <tr className="border-b cursor-pointer hover:bg-blue-50">
+                              <td className="px-2 py-2">东部片区</td>
+                              <td className="px-2 py-2 text-center text-green-500">-3</td>
+                              <td className="px-2 py-2 text-center">资源调配优化</td>
+                            </tr>
+                            <tr className="border-b cursor-pointer hover:bg-blue-50">
+                              <td className="px-2 py-2">南部片区</td>
+                              <td className="px-2 py-2 text-center text-green-500">-2</td>
+                              <td className="px-2 py-2 text-center">保持基本平衡</td>
+                            </tr>
+                          </>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  <div className="mt-8 p-4 bg-blue-50 rounded text-sm flex-grow">
+                    <div className="font-medium mb-1">资源分析结论</div>
+                    <ul className="list-disc pl-5 space-y-1">
+                      {resourceTab === 'distribution' && (
+                        <>
+                          <li>中心城区警力配置最多，占比26.1%</li>
+                          <li>东部片区次之，占比22.5%</li>
+                          <li>北部片区警力最少，仅占15.3%</li>
+                          <li>整体警力分布呈现"中心集中、周边分散"特点</li>
+                        </>
+                      )}
                       
-                      {resourceTab === 'match' && policeResourceData.map(item => (
-                        <tr key={item.id} className="border-b cursor-pointer hover:bg-blue-50">
-                          <td className="px-2 py-2">{item.area}</td>
-                          <td className="px-2 py-2 text-center">{item.ratio}</td>
-                          <td className={`px-2 py-2 text-center ${getMatchColor(item.ratio)}`}>
-                            {item.ratio >= 1.2 ? '充足' : item.ratio >= 0.8 ? '一般' : '不足'}
-                          </td>
-                        </tr>
-                      ))}
+                      {resourceTab === 'match' && (
+                        <>
+                          <li>中心城区警情警力匹配度最高，达1.4</li>
+                          <li>北部片区匹配度最低，仅为0.8</li>
+                          <li>西部片区匹配度较低，为0.9，警力资源紧张</li>
+                          <li>40%区域警力配置与警情数量不匹配</li>
+                        </>
+                      )}
                       
-                      {resourceTab === 'workload' && policeResourceData.map(item => (
-                        <tr key={item.id} className="border-b cursor-pointer hover:bg-blue-50">
-                          <td className="px-2 py-2">{item.area}</td>
-                          <td className="px-2 py-2 text-center">{item.workload}</td>
-                          <td className={`px-2 py-2 text-center ${item.workload > 150 ? 'text-red-500' : item.workload > 130 ? 'text-yellow-500' : 'text-green-500'}`}>
-                            {item.workload > 150 ? '过载' : item.workload > 130 ? '较高' : '正常'}
-                          </td>
-                        </tr>
-                      ))}
+                      {resourceTab === 'workload' && (
+                        <>
+                          <li>北部片区警力工作负荷最高，达162</li>
+                          <li>西部片区次之，为156，警力处于过载状态</li>
+                          <li>中心城区警力工作负荷最低，为115</li>
+                          <li>警力工作负荷与警情警力匹配度呈负相关</li>
+                        </>
+                      )}
                       
                       {resourceTab === 'optimize' && (
                         <>
-                          <tr className="border-b cursor-pointer hover:bg-blue-50">
-                            <td className="px-2 py-2">西部片区</td>
-                            <td className="px-2 py-2 text-center text-red-500">+8</td>
-                            <td className="px-2 py-2 text-center">匹配度提升22%</td>
-                          </tr>
-                          <tr className="border-b cursor-pointer hover:bg-blue-50">
-                            <td className="px-2 py-2">北部片区</td>
-                            <td className="px-2 py-2 text-center text-red-500">+6</td>
-                            <td className="px-2 py-2 text-center">匹配度提升18%</td>
-                          </tr>
-                          <tr className="border-b cursor-pointer hover:bg-blue-50">
-                            <td className="px-2 py-2">中心城区</td>
-                            <td className="px-2 py-2 text-center text-green-500">-4</td>
-                            <td className="px-2 py-2 text-center">资源优化利用</td>
-                          </tr>
-                          <tr className="border-b cursor-pointer hover:bg-blue-50">
-                            <td className="px-2 py-2">东部片区</td>
-                            <td className="px-2 py-2 text-center text-green-500">-3</td>
-                            <td className="px-2 py-2 text-center">资源调配优化</td>
-                          </tr>
-                          <tr className="border-b cursor-pointer hover:bg-blue-50">
-                            <td className="px-2 py-2">南部片区</td>
-                            <td className="px-2 py-2 text-center text-green-500">-2</td>
-                            <td className="px-2 py-2 text-center">保持基本平衡</td>
-                          </tr>
+                          <li>建议西部片区和北部片区增加警力配置</li>
+                          <li>中心城区可适当调减警力至其他区域</li>
+                          <li>优化后预计整体匹配度提升15%</li>
+                          <li>优化后预计超负荷警力比例下降28%</li>
                         </>
                       )}
-                    </tbody>
-                  </table>
-                </div>
-                
-                <div className="mt-4 p-3 bg-blue-50 rounded text-sm">
-                  <div className="font-medium mb-1">资源分析结论</div>
-                  <ul className="list-disc pl-5 space-y-1">
-                    {resourceTab === 'distribution' && (
-                      <>
-                        <li>中心城区警力配置最多，占比26.1%</li>
-                        <li>东部片区次之，占比22.5%</li>
-                        <li>北部片区警力最少，仅占15.3%</li>
-                        <li>整体警力分布呈现"中心集中、周边分散"特点</li>
-                      </>
-                    )}
-                    
-                    {resourceTab === 'match' && (
-                      <>
-                        <li>中心城区警情警力匹配度最高，达1.4</li>
-                        <li>北部片区匹配度最低，仅为0.8</li>
-                        <li>西部片区匹配度较低，为0.9，警力资源紧张</li>
-                        <li>40%区域警力配置与警情数量不匹配</li>
-                      </>
-                    )}
-                    
-                    {resourceTab === 'workload' && (
-                      <>
-                        <li>北部片区警力工作负荷最高，达162</li>
-                        <li>西部片区次之，为156，警力处于过载状态</li>
-                        <li>中心城区警力工作负荷最低，为115</li>
-                        <li>警力工作负荷与警情警力匹配度呈负相关</li>
-                      </>
-                    )}
-                    
-                    {resourceTab === 'optimize' && (
-                      <>
-                        <li>建议西部片区和北部片区增加警力配置</li>
-                        <li>中心城区可适当调减警力至其他区域</li>
-                        <li>优化后预计整体匹配度提升15%</li>
-                        <li>优化后预计超负荷警力比例下降28%</li>
-                      </>
-                    )}
-                  </ul>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>
             
             <div className="grid grid-cols-2 gap-4 mt-4">
-              <div className="bg-blue-50 p-3 rounded">
+              <div className="bg-blue-50 p-3 rounded h-full">
                 <h3 className="font-medium mb-2">警情分布特征</h3>
                 <div className="space-y-2 text-sm">
                   {resourceTab === 'distribution' && (
@@ -680,7 +879,7 @@ const PersonnelAnalysis = () => {
                 </div>
               </div>
               
-              <div className="bg-green-50 p-3 rounded">
+              <div className="bg-green-50 p-3 rounded h-full">
                 <h3 className="font-medium mb-2">优化策略建议</h3>
                 <div className="space-y-2 text-sm">
                   {resourceTab === 'distribution' && (
@@ -724,7 +923,7 @@ const PersonnelAnalysis = () => {
           </div>
         )}
         
-        {/* 民警绩效评估面板 */}
+        {/* 民警绩效评估面板 */}        
         {mainTab === 'performance' && (
           <div>
             <div className="flex justify-between items-center mb-4">
@@ -758,158 +957,147 @@ const PersonnelAnalysis = () => {
             </div>
             
             <div className="grid grid-cols-5 gap-4">
-              <div className="col-span-3 h-72 bg-gray-100 rounded flex items-center justify-center">
-                <div className="text-center">
-                  <div className="text-lg font-bold text-gray-500 mb-2">
-                    {performanceTab === 'efficiency' ? '警情处置平均时长统计' : 
-                     performanceTab === 'count' ? '警情处置数量统计' : 
-                     performanceTab === 'rate' ? '警情处置率统计' :
-                     '群众满意度评价统计'}
-                  </div>
-                  <div className="text-sm text-gray-400">
-                    {performanceTab === 'efficiency' ? '展示各警种警情处置的平均时长' : 
-                     performanceTab === 'count' ? '展示各警种处置警情的数量' : 
-                     performanceTab === 'rate' ? '展示各警种警情处置完成率' :
-                     '展示群众对各警种处警效果的满意度评价'}
-                  </div>
-                </div>
+              <div className="col-span-3 bg-white border rounded p-3" style={{ height: '380px' }}>
+                {renderPerformanceChart()}
               </div>
               
-              <div className="col-span-2">
-                <div className="font-medium mb-2">
-                  {performanceTab === 'efficiency' ? '处置效率排名' : 
-                   performanceTab === 'count' ? '处置数量排名' : 
-                   performanceTab === 'rate' ? '处置率排名' :
-                   '满意度排名'}
-                </div>
-                <div className="overflow-y-auto max-h-64">
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-2 py-2 text-left font-medium text-gray-500">警种</th>
-                        <th className="px-2 py-2 text-center font-medium text-gray-500">
-                          {performanceTab === 'efficiency' ? '平均时长(小时)' : 
-                           performanceTab === 'count' ? '处置数量' : 
-                           performanceTab === 'rate' ? '处置率' :
-                           '满意度'}
-                        </th>
-                        <th className="px-2 py-2 text-center font-medium text-gray-500">
-                          {performanceTab === 'efficiency' ? '状态' : 
-                           performanceTab === 'count' ? '占比' : 
-                           performanceTab === 'rate' ? '状态' :
-                           '评价'}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {performanceTab === 'efficiency' && [...policePerformanceData].sort((a, b) => a.avgTime - b.avgTime).map(item => (
-                        <tr key={item.id} className="border-b cursor-pointer hover:bg-blue-50">
-                          <td className="px-2 py-2">{item.police}</td>
-                          <td className="px-2 py-2 text-center">{item.avgTime}</td>
-                          <td className={`px-2 py-2 text-center ${item.avgTime < 1.5 ? 'text-green-500' : item.avgTime < 3 ? 'text-yellow-500' : 'text-red-500'}`}>
-                            {item.avgTime < 1.5 ? '优秀' : item.avgTime < 3 ? '良好' : '一般'}
-                          </td>
+              <div className="col-span-2 flex flex-col">
+                <div> {/* This div wraps the title and the table an helps with flex structure */} 
+                  <div className="font-medium mb-2">
+                    {performanceTab === 'efficiency' ? '处置效率排名' : 
+                    performanceTab === 'count' ? '处置数量排名' : 
+                    performanceTab === 'rate' ? '处置率排名' :
+                    '满意度排名'}
+                  </div>
+                  <div className="overflow-y-auto max-h-[250px] mb-3">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-2 py-2 text-left font-medium text-gray-500">警种</th>
+                          <th className="px-2 py-2 text-center font-medium text-gray-500">
+                            {performanceTab === 'efficiency' ? '平均时长(小时)' : 
+                             performanceTab === 'count' ? '处置数量' : 
+                             performanceTab === 'rate' ? '处置率' :
+                             '满意度'}
+                          </th>
+                          <th className="px-2 py-2 text-center font-medium text-gray-500">
+                            {performanceTab === 'efficiency' ? '状态' : 
+                             performanceTab === 'count' ? '占比' : 
+                             performanceTab === 'rate' ? '状态' :
+                             '评价'}
+                          </th>
                         </tr>
-                      ))}
+                      </thead>
+                      <tbody>
+                        {performanceTab === 'efficiency' && [...policePerformanceData].sort((a, b) => a.avgTime - b.avgTime).map(item => (
+                          <tr key={item.id} className="border-b cursor-pointer hover:bg-blue-50">
+                            <td className="px-2 py-2">{item.police}</td>
+                            <td className="px-2 py-2 text-center">{item.avgTime}</td>
+                            <td className={`px-2 py-2 text-center ${item.avgTime < 1.5 ? 'text-green-500' : item.avgTime < 3 ? 'text-yellow-500' : 'text-red-500'}`}>
+                              {item.avgTime < 1.5 ? '优秀' : item.avgTime < 3 ? '良好' : '一般'}
+                            </td>
+                          </tr>
+                        ))}
+                        
+                        {performanceTab === 'count' && [...policePerformanceData].sort((a, b) => b.caseCount - a.caseCount).map(item => (
+                          <tr key={item.id} className="border-b cursor-pointer hover:bg-blue-50">
+                            <td className="px-2 py-2">{item.police}</td>
+                            <td className="px-2 py-2 text-center">{item.caseCount}</td>
+                            <td className="px-2 py-2 text-center">
+                              {Math.round(item.caseCount/policePerformanceData.reduce((sum, i) => sum + i.caseCount, 0)*100)}%
+                            </td>
+                          </tr>
+                        ))}
+                        
+                        {performanceTab === 'rate' && [...policePerformanceData].sort((a, b) => b.solveRate - a.solveRate).map(item => (
+                          <tr key={item.id} className="border-b cursor-pointer hover:bg-blue-50">
+                            <td className="px-2 py-2">{item.police}</td>
+                            <td className="px-2 py-2 text-center">{item.solveRate}%</td>
+                            <td className={`px-2 py-2 text-center ${item.solveRate > 90 ? 'text-green-500' : item.solveRate > 80 ? 'text-yellow-500' : 'text-red-500'}`}>
+                              {item.solveRate > 90 ? '优秀' : item.solveRate > 80 ? '良好' : '一般'}
+                            </td>
+                          </tr>
+                        ))}
+                        
+                        {performanceTab === 'satisfaction' && (
+                          <>
+                            <tr className="border-b cursor-pointer hover:bg-blue-50">
+                              <td className="px-2 py-2">交警大队</td>
+                              <td className="px-2 py-2 text-center">92.6%</td>
+                              <td className="px-2 py-2 text-center text-green-500">优秀</td>
+                            </tr>
+                            <tr className="border-b cursor-pointer hover:bg-blue-50">
+                              <td className="px-2 py-2">巡警大队</td>
+                              <td className="px-2 py-2 text-center">90.8%</td>
+                              <td className="px-2 py-2 text-center text-green-500">优秀</td>
+                            </tr>
+                            <tr className="border-b cursor-pointer hover:bg-blue-50">
+                              <td className="px-2 py-2">治安大队</td>
+                              <td className="px-2 py-2 text-center">87.2%</td>
+                              <td className="px-2 py-2 text-center text-yellow-500">良好</td>
+                            </tr>
+                            <tr className="border-b cursor-pointer hover:bg-blue-50">
+                              <td className="px-2 py-2">社区警务</td>
+                              <td className="px-2 py-2 text-center">85.4%</td>
+                              <td className="px-2 py-2 text-center text-yellow-500">良好</td>
+                            </tr>
+                            <tr className="border-b cursor-pointer hover:bg-blue-50">
+                              <td className="px-2 py-2">刑侦大队</td>
+                              <td className="px-2 py-2 text-center">78.3%</td>
+                              <td className="px-2 py-2 text-center text-red-500">一般</td>
+                            </tr>
+                          </>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  <div className="mt-4 p-3 bg-blue-50 rounded text-sm flex-grow">
+                    <div className="font-medium mb-1">绩效分析结论</div>
+                    <ul className="list-disc pl-5 space-y-1">
+                      {performanceTab === 'efficiency' && (
+                        <>
+                          <li>交警大队警情处置效率最高，平均用时0.8小时</li>
+                          <li>刑侦大队处置时长最长，反映案件复杂性</li>
+                          <li>处置效率与警情类型关联度高</li>
+                          <li>整体处置效率环比提升5.2%</li>
+                        </>
+                      )}
                       
-                      {performanceTab === 'count' && [...policePerformanceData].sort((a, b) => b.caseCount - a.caseCount).map(item => (
-                        <tr key={item.id} className="border-b cursor-pointer hover:bg-blue-50">
-                          <td className="px-2 py-2">{item.police}</td>
-                          <td className="px-2 py-2 text-center">{item.caseCount}</td>
-                          <td className="px-2 py-2 text-center">
-                            {Math.round(item.caseCount/policePerformanceData.reduce((sum, i) => sum + i.caseCount, 0)*100)}%
-                          </td>
-                        </tr>
-                      ))}
+                      {performanceTab === 'count' && (
+                        <>
+                          <li>交警大队处置警情数量最多，占比26.2%</li>
+                          <li>刑侦大队处置数量最少，主要处理复杂案件</li>
+                          <li>处置数量与辖区特点和警种职能相关</li>
+                          <li>处置总量环比增长3.8%</li>
+                        </>
+                      )}
                       
-                      {performanceTab === 'rate' && [...policePerformanceData].sort((a, b) => b.solveRate - a.solveRate).map(item => (
-                        <tr key={item.id} className="border-b cursor-pointer hover:bg-blue-50">
-                          <td className="px-2 py-2">{item.police}</td>
-                          <td className="px-2 py-2 text-center">{item.solveRate}%</td>
-                          <td className={`px-2 py-2 text-center ${item.solveRate > 90 ? 'text-green-500' : item.solveRate > 80 ? 'text-yellow-500' : 'text-red-500'}`}>
-                            {item.solveRate > 90 ? '优秀' : item.solveRate > 80 ? '良好' : '一般'}
-                          </td>
-                        </tr>
-                      ))}
+                      {performanceTab === 'rate' && (
+                        <>
+                          <li>交警大队警情处置率最高，达93.8%</li>
+                          <li>刑侦大队处置率相对较低，为72.5%</li>
+                          <li>整体警情处置率为84.7%</li>
+                          <li>处置率环比提升2.5个百分点</li>
+                        </>
+                      )}
                       
                       {performanceTab === 'satisfaction' && (
                         <>
-                          <tr className="border-b cursor-pointer hover:bg-blue-50">
-                            <td className="px-2 py-2">交警大队</td>
-                            <td className="px-2 py-2 text-center">92.6%</td>
-                            <td className="px-2 py-2 text-center text-green-500">优秀</td>
-                          </tr>
-                          <tr className="border-b cursor-pointer hover:bg-blue-50">
-                            <td className="px-2 py-2">巡警大队</td>
-                            <td className="px-2 py-2 text-center">90.8%</td>
-                            <td className="px-2 py-2 text-center text-green-500">优秀</td>
-                          </tr>
-                          <tr className="border-b cursor-pointer hover:bg-blue-50">
-                            <td className="px-2 py-2">治安大队</td>
-                            <td className="px-2 py-2 text-center">87.2%</td>
-                            <td className="px-2 py-2 text-center text-yellow-500">良好</td>
-                          </tr>
-                          <tr className="border-b cursor-pointer hover:bg-blue-50">
-                            <td className="px-2 py-2">社区警务</td>
-                            <td className="px-2 py-2 text-center">85.4%</td>
-                            <td className="px-2 py-2 text-center text-yellow-500">良好</td>
-                          </tr>
-                          <tr className="border-b cursor-pointer hover:bg-blue-50">
-                            <td className="px-2 py-2">刑侦大队</td>
-                            <td className="px-2 py-2 text-center">78.3%</td>
-                            <td className="px-2 py-2 text-center text-red-500">一般</td>
-                          </tr>
+                          <li>交警大队群众满意度最高，达92.6%</li>
+                          <li>刑侦大队满意度较低，为78.3%</li>
+                          <li>整体满意度为86.9%</li>
+                          <li>满意度环比提升1.8个百分点</li>
                         </>
                       )}
-                    </tbody>
-                  </table>
-                </div>
-                
-                <div className="mt-4 p-3 bg-blue-50 rounded text-sm">
-                  <div className="font-medium mb-1">绩效分析结论</div>
-                  <ul className="list-disc pl-5 space-y-1">
-                    {performanceTab === 'efficiency' && (
-                      <>
-                        <li>交警大队警情处置效率最高，平均用时0.8小时</li>
-                        <li>刑侦大队处置时长最长，反映案件复杂性</li>
-                        <li>处置效率与警情类型关联度高</li>
-                        <li>整体处置效率环比提升5.2%</li>
-                      </>
-                    )}
-                    
-                    {performanceTab === 'count' && (
-                      <>
-                        <li>交警大队处置警情数量最多，占比26.2%</li>
-                        <li>刑侦大队处置数量最少，主要处理复杂案件</li>
-                        <li>处置数量与辖区特点和警种职能相关</li>
-                        <li>处置总量环比增长3.8%</li>
-                      </>
-                    )}
-                    
-                    {performanceTab === 'rate' && (
-                      <>
-                        <li>交警大队警情处置率最高，达93.8%</li>
-                        <li>刑侦大队处置率相对较低，为72.5%</li>
-                        <li>整体警情处置率为84.7%</li>
-                        <li>处置率环比提升2.5个百分点</li>
-                      </>
-                    )}
-                    
-                    {performanceTab === 'satisfaction' && (
-                      <>
-                        <li>交警大队群众满意度最高，达92.6%</li>
-                        <li>刑侦大队满意度较低，为78.3%</li>
-                        <li>整体满意度为86.9%</li>
-                        <li>满意度环比提升1.8个百分点</li>
-                      </>
-                    )}
-                  </ul>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>
             
             <div className="grid grid-cols-2 gap-4 mt-4">
-              <div className="bg-blue-50 p-3 rounded">
+              <div className="bg-blue-50 p-3 rounded h-full">
                 <h3 className="font-medium mb-2">绩效关联分析</h3>
                 <div className="space-y-2 text-sm">
                   {performanceTab === 'efficiency' && (
@@ -954,7 +1142,7 @@ const PersonnelAnalysis = () => {
                 </div>
               </div>
               
-              <div className="bg-green-50 p-3 rounded">
+              <div className="bg-green-50 p-3 rounded h-full">
                 <h3 className="font-medium mb-2">提升策略建议</h3>
                 <div className="space-y-2 text-sm">
                   {performanceTab === 'efficiency' && (
@@ -997,7 +1185,7 @@ const PersonnelAnalysis = () => {
             </div>
           </div>
         )}
-      </div>
+      </div> {/* Closing tag for the main tabs container div */}
       
       {/* 辅助信息面板 */}
       <div className="bg-white p-4 rounded shadow">
