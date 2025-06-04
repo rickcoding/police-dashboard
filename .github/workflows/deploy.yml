@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: 添加部署配置文件和构建优化
 
 on:
   push:
@@ -9,35 +9,26 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-      
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
     
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v3
+      
+    - name: 设置 Node.js
+      uses: actions/setup-node@v3
       with:
         node-version: '18'
         cache: 'npm'
         
-    - name: Install dependencies
-      run: npm ci
+    - name: 安装依赖
+      run: npm ci --legacy-peer-deps
       
-    - name: Build
+    - name: 构建项目
       run: npm run build
       
-    - name: Setup Pages
-      uses: actions/configure-pages@v4
-      
-    - name: Upload artifact
-      uses: actions/upload-pages-artifact@v3
+    - name: 部署到 GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      if: github.ref == 'refs/heads/main'
       with:
-        path: './build'
-        
-    - name: Deploy to GitHub Pages
-      id: deployment
-      uses: actions/deploy-pages@v4 
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./build 
